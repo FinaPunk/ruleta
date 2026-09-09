@@ -14,6 +14,8 @@ public class VentanaLogin {
     private final JButton btnIngresar = new JButton("Ingresar");
 
     public VentanaLogin() {
+        USUARIOS.add(new Usuario("admin", "1234", "Administrador"));
+        USUARIOS.add(new Usuario("jugador", "1234", "Jugador"));
     }
 
     public void mostrarVentana() {
