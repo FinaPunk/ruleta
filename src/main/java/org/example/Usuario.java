@@ -1,3 +1,5 @@
+package org.example;
+
 public class Usuario {
 
     private String username;
@@ -10,7 +12,6 @@ public class Usuario {
         this.nombre = nombre;
     }
 
-    // Verifica si las credenciales ingresadas pertenecen al usuario
     public boolean validarCredenciales(String u, String p) {
         return this.username.equals(u) && this.password.equals(p);
     }
