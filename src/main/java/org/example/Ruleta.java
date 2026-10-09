@@ -1,19 +1,21 @@
-
 package org.example;
 
 import java.util.Random;
 
 public class Ruleta {
 
-    public static final int MAX_HISTORIAL = 100;
-    public static final int CANTIDAD_NUMEROS = 37;
+    private static final int MAX_HISTORIAL = 100;
+    private static final int CANTIDAD_NUMEROS = 37;
 
     private int saldo;
     private final Random random = new Random();
 
-    private final int[] historialNumeros = new int[MAX_HISTORIAL];
+    private final int[] historialNumeros =
+            new int[MAX_HISTORIAL];
+
     private final TipoApuesta[] historialApuestas =
             new TipoApuesta[MAX_HISTORIAL];
+
     private final boolean[] historialAciertos =
             new boolean[MAX_HISTORIAL];
 
@@ -32,7 +34,7 @@ public class Ruleta {
             );
         }
 
-        saldo = saldoInicial;
+        this.saldo = saldoInicial;
     }
 
     public int getSaldo() {
@@ -70,7 +72,10 @@ public class Ruleta {
         return false;
     }
 
-    public boolean evaluarResultado(int numero, TipoApuesta tipo) {
+    public boolean evaluarResultado(
+            int numero,
+            TipoApuesta tipo
+    ) {
         if (numero < 0 || numero >= CANTIDAD_NUMEROS) {
             throw new IllegalArgumentException(
                     "El número debe estar entre 0 y 36."
@@ -86,12 +91,16 @@ public class Ruleta {
         switch (tipo) {
             case ROJO:
                 return numero != 0 && esRojo(numero);
+
             case NEGRO:
                 return numero != 0 && !esRojo(numero);
+
             case PAR:
                 return numero != 0 && numero % 2 == 0;
+
             case IMPAR:
                 return numero % 2 != 0;
+
             default:
                 return false;
         }
@@ -113,7 +122,10 @@ public class Ruleta {
         saldo += monto;
     }
 
-    public boolean apostar(TipoApuesta tipo, int monto) {
+    public boolean apostar(
+            TipoApuesta tipo,
+            int monto
+    ) {
         if (tipo == null) {
             throw new IllegalArgumentException(
                     "Debes seleccionar un tipo de apuesta."
@@ -160,20 +172,26 @@ public class Ruleta {
     ) {
         if (historialSize == MAX_HISTORIAL) {
             System.arraycopy(
-                    historialNumeros, 1,
-                    historialNumeros, 0,
+                    historialNumeros,
+                    1,
+                    historialNumeros,
+                    0,
                     MAX_HISTORIAL - 1
             );
 
             System.arraycopy(
-                    historialApuestas, 1,
-                    historialApuestas, 0,
+                    historialApuestas,
+                    1,
+                    historialApuestas,
+                    0,
                     MAX_HISTORIAL - 1
             );
 
             System.arraycopy(
-                    historialAciertos, 1,
-                    historialAciertos, 0,
+                    historialAciertos,
+                    1,
+                    historialAciertos,
+                    0,
                     MAX_HISTORIAL - 1
             );
 
@@ -183,6 +201,7 @@ public class Ruleta {
         historialNumeros[historialSize] = numero;
         historialApuestas[historialSize] = tipo;
         historialAciertos[historialSize] = acierto;
+
         historialSize++;
     }
 
@@ -205,7 +224,11 @@ public class Ruleta {
                     .append(" | Tipo: ")
                     .append(historialApuestas[i])
                     .append(" | Resultado: ")
-                    .append(historialAciertos[i] ? "Ganada" : "Perdida")
+                    .append(
+                            historialAciertos[i]
+                                    ? "Ganada"
+                                    : "Perdida"
+                    )
                     .append("\n");
 
             if (historialAciertos[i]) {
@@ -213,11 +236,17 @@ public class Ruleta {
             }
         }
 
-        texto.append("\nTotal de apuestas: ").append(historialSize);
-        texto.append("\nApuestas ganadas: ").append(aciertos);
+        texto.append("\nTotal de apuestas: ")
+                .append(historialSize);
+
+        texto.append("\nApuestas ganadas: ")
+                .append(aciertos);
+
         texto.append("\nApuestas perdidas: ")
                 .append(historialSize - aciertos);
-        texto.append("\nSaldo actual: $").append(getSaldo());
+
+        texto.append("\nSaldo actual: $")
+                .append(getSaldo());
 
         return texto.toString();
     }

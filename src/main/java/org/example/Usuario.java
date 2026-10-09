@@ -8,20 +8,8 @@ public class Usuario {
     private String nombre;
 
     public Usuario(String username, String password, String nombre) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El nombre de usuario es obligatorio."
-            );
-        }
-
-        if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException(
-                    "La contraseña es obligatoria."
-            );
-        }
-
-        this.username = username.trim();
-        this.password = password;
+        setUsername(username);
+        setPassword(password);
         setNombre(nombre);
     }
 
@@ -33,8 +21,28 @@ public class Usuario {
         return username;
     }
 
+    public void setUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException(
+                    "El nombre de usuario es obligatorio."
+            );
+        }
+
+        this.username = username.trim();
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException(
+                    "La contraseña es obligatoria."
+            );
+        }
+
+        this.password = password;
     }
 
     public String getNombre() {
