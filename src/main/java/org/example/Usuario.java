@@ -7,19 +7,28 @@ public class Usuario {
     private String password;
     private String nombre;
 
-    // Constructor con parámetros
     public Usuario(String username, String password, String nombre) {
-        this.username = username;
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException(
+                    "El nombre de usuario es obligatorio."
+            );
+        }
+
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException(
+                    "La contraseña es obligatoria."
+            );
+        }
+
+        this.username = username.trim();
         this.password = password;
         setNombre(nombre);
     }
 
-    // Constructor sin parámetros: usuario invitado
     public Usuario() {
-        this("invitado", "", "Invitado");
+        this("invitado", "invitado", "Invitado");
     }
 
-    // Getters
     public String getUsername() {
         return username;
     }
@@ -32,7 +41,6 @@ public class Usuario {
         return nombre;
     }
 
-    // Setter con validación
     public void setNombre(String nombre) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException(
@@ -43,8 +51,13 @@ public class Usuario {
         this.nombre = nombre.trim();
     }
 
-    // Validar credenciales
-    public boolean validarCredenciales(String u, String p) {
-        return username.equals(u) && password.equals(p);
+    public boolean validarCredenciales(
+            String username,
+            String password
+    ) {
+        return username != null
+                && password != null
+                && this.username.equalsIgnoreCase(username.trim())
+                && this.password.equals(password);
     }
 }

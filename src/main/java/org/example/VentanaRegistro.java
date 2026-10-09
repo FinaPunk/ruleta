@@ -1,3 +1,4 @@
+
 package org.example;
 
 import javax.swing.*;
@@ -5,97 +6,101 @@ import java.awt.*;
 
 public class VentanaRegistro {
 
-    private final JFrame frame = new JFrame("Registro - Casino Black Cat");
+    private final JFrame frame =
+            new JFrame("Casino Black Cat - Registro");
 
-    private final JLabel lblUsuario = new JLabel("Usuario:");
+    private final JTextField txtNombre = new JTextField();
     private final JTextField txtUsuario = new JTextField();
-
-    private final JLabel lblClave = new JLabel("Clave:");
     private final JPasswordField txtClave = new JPasswordField();
 
-    private final JLabel lblNombre = new JLabel("Nombre:");
-    private final JTextField txtNombre = new JTextField();
-
-    private final JButton btnRegistrar = new JButton("Registrar");
-    private final JButton btnVolver = new JButton("Volver");
+    private final SessionController sessionController =
+            SessionController.getInstancia();
 
     public VentanaRegistro() {
-
         frame.setSize(400, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new GridLayout(5, 2, 10, 10));
-
-        frame.add(lblUsuario);
-        frame.add(txtUsuario);
-
-        frame.add(lblClave);
-        frame.add(txtClave);
-
-        frame.add(lblNombre);
-        frame.add(txtNombre);
-
-        frame.add(btnRegistrar);
-        frame.add(btnVolver);
-
-        btnRegistrar.addActionListener(e -> registrar());
-        btnVolver.addActionListener(e -> volverLogin());
-    }
-
-    public void mostrarVentana() {
-
         frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
+        panel.setBorder(
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        );
+
+        JButton btnRegistrar = new JButton("Crear cuenta");
+        JButton btnVolver = new JButton("Volver al inicio");
+
+        panel.add(new JLabel("Nombre:"));
+        panel.add(txtNombre);
+        panel.add(new JLabel("Usuario:"));
+        panel.add(txtUsuario);
+        panel.add(new JLabel("Contraseña:"));
+        panel.add(txtClave);
+        panel.add(btnRegistrar);
+        panel.add(btnVolver);
+
+        frame.add(panel);
+
+        btnRegistrar.addActionListener(e -> registrarUsuario());
+        btnVolver.addActionListener(e -> volverAlLogin());
     }
 
-    private void registrar() {
-
-        String usuario = txtUsuario.getText().trim();
-        String clave = new String(txtClave.getPassword());
+    private void registrarUsuario() {
         String nombre = txtNombre.getText().trim();
+        String username = txtUsuario.getText().trim();
+        String password = new String(txtClave.getPassword());
 
-        if (usuario.isEmpty() || clave.isEmpty() || nombre.isEmpty()) {
-
+        if (nombre.isEmpty() || username.isEmpty()
+                || password.isBlank()) {
             JOptionPane.showMessageDialog(
                     frame,
-                    "Todos los campos deben estar completos.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
+                    "Completa todos los campos.",
+                    "Datos incompletos",
+                    JOptionPane.WARNING_MESSAGE
             );
-
             return;
         }
 
-        for (Usuario u : VentanaLogin.USUARIOS) {
+        try {
+            boolean registrado = sessionController.registrarUsuario(
+                    username,
+                    password,
+                    nombre
+            );
 
-            if (u.validarCredenciales(usuario, clave)) {
-
+            if (!registrado) {
                 JOptionPane.showMessageDialog(
                         frame,
-                        "El usuario ya existe.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
+                        "Ese nombre de usuario ya está registrado.",
+                        "Usuario existente",
+                        JOptionPane.WARNING_MESSAGE
                 );
-
                 return;
             }
+
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Cuenta creada correctamente. Ahora inicia sesión."
+            );
+
+            volverAlLogin();
+
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(
+                    frame,
+                    ex.getMessage(),
+                    "Error de registro",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
-
-        VentanaLogin.USUARIOS.add(
-                new Usuario(usuario, clave, nombre)
-        );
-
-        JOptionPane.showMessageDialog(
-                frame,
-                "Usuario registrado correctamente."
-        );
-
-        volverLogin();
     }
 
-    private void volverLogin() {
-
+    private void volverAlLogin() {
         frame.dispose();
-
         new VentanaLogin().mostrarVentana();
+    }
+
+    public void mostrarVentana() {
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
 }

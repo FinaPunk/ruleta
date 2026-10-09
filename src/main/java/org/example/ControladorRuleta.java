@@ -33,10 +33,7 @@ public class ControladorRuleta {
         ruleta.depositar(monto);
     }
 
-    public boolean realizarApuesta(
-            TipoApuesta tipo,
-            int monto
-    ) {
+    public boolean realizarApuesta(TipoApuesta tipo, int monto) {
         return ruleta.apostar(tipo, monto);
     }
 
