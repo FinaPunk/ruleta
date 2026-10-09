@@ -1,216 +1,117 @@
+
 package org.example;
 
 import java.util.Random;
-import java.util.Scanner;
 
 public class Ruleta {
 
-    public static final int MAX_HISTORIAL = 100;
-    public static final int CANTIDAD_NUMEROS = 37;
+    private static final int MAX_HISTORIAL = 100;
+    private static final int CANTIDAD_NUMEROS = 37;
 
-    public static int[] historialNumeros = new int[MAX_HISTORIAL];
-    public static int[] historialApuestas = new int[MAX_HISTORIAL];
-    public static boolean[] historialAciertos = new boolean[MAX_HISTORIAL];
+    private int saldo;
+    private final Random rng;
 
-    public static int historialSize = 0;
+    private final int[] historialNumeros;
+    private final int[] historialApuestas;
+    private final boolean[] historialAciertos;
+    private int historialSize;
 
-    public static Random rng = new Random();
+    private int ultimoNumero;
+    private boolean ultimoAcierto;
 
-    public static int[] numerosRojos = {
+    private static final int[] NUMEROS_ROJOS = {
             1, 3, 5, 7, 9,
             12, 14, 16, 18,
             19, 21, 23, 25, 27,
             30, 32, 34, 36
     };
 
-    public static void main(String[] args) {
-
-        menu();
+    // Constructor sin parámetros: saldo inicial cero
+    public Ruleta() {
+        this(0);
     }
 
-    public static void menu() {
-
-        Scanner in = new Scanner(System.in);
-
-        int opcion;
-
-        do {
-
-            mostrarMenu();
-
-            opcion = leerOpcion(in);
-
-            ejecutarOpcion(opcion, in);
-
-        } while (opcion != 3);
-    }
-
-    public static void mostrarMenu() {
-
-        System.out.println();
-        System.out.println("===== CASINO BLACK CAT =====");
-        System.out.println("1. Iniciar ronda");
-        System.out.println("2. Ver estadísticas");
-        System.out.println("3. Salir");
-        System.out.print("Seleccione una opción: ");
-    }
-
-    public static int leerOpcion(Scanner in) {
-
-        if (in.hasNextInt()) {
-
-            return in.nextInt();
-
-        } else {
-
-            in.next();
-
-            return 0;
-        }
-    }
-
-    public static void ejecutarOpcion(int opcion, Scanner in) {
-
-        switch (opcion) {
-
-            case 1:
-                iniciarRonda(in);
-                break;
-
-            case 2:
-                mostrarEstadisticas();
-                break;
-
-            case 3:
-                System.out.println("Gracias por jugar.");
-                break;
-
-            default:
-                System.out.println("Opción inválida.");
-        }
-    }
-
-    public static void iniciarRonda(Scanner in) {
-
-        char tipo = leerTipoApuesta(in);
-
-        System.out.print("Ingrese el monto a apostar: ");
-
-        while (!in.hasNextInt()) {
-
-            System.out.println("Debe ingresar un número.");
-            in.next();
-            System.out.print("Ingrese el monto a apostar: ");
+    // Constructor con saldo inicial
+    public Ruleta(int saldoInicial) {
+        if (saldoInicial < 0) {
+            throw new IllegalArgumentException(
+                    "El saldo inicial no puede ser negativo."
+            );
         }
 
-        int monto = in.nextInt();
+        this.saldo = saldoInicial;
+        this.rng = new Random();
 
-        while (monto <= 0) {
+        this.historialNumeros = new int[MAX_HISTORIAL];
+        this.historialApuestas = new int[MAX_HISTORIAL];
+        this.historialAciertos = new boolean[MAX_HISTORIAL];
+        this.historialSize = 0;
 
-            System.out.println("El monto debe ser mayor que 0.");
-            System.out.print("Ingrese el monto a apostar: ");
+        this.ultimoNumero = -1;
+        this.ultimoAcierto = false;
+    }
 
-            while (!in.hasNextInt()) {
+    // Consultar saldo
+    public int getSaldo() {
+        return saldo;
+    }
 
-                System.out.println("Debe ingresar un número.");
-                in.next();
-                System.out.print("Ingrese el monto a apostar: ");
-            }
-
-            monto = in.nextInt();
+    // Recargar saldo
+    public void depositar(int monto) {
+        if (monto <= 0) {
+            throw new IllegalArgumentException(
+                    "El depósito debe ser mayor que cero."
+            );
         }
 
-        int numero = girarRuleta();
+        if (saldo > Integer.MAX_VALUE - monto) {
+            throw new IllegalArgumentException(
+                    "El monto supera el saldo máximo permitido."
+            );
+        }
 
-        boolean acierto = evaluarResultado(numero, tipo);
-
-        registrarResultado(numero, monto, acierto);
-
-        mostrarResultado(numero, tipo, monto, acierto);
+        saldo += monto;
     }
 
-    public static char leerTipoApuesta(Scanner in) {
-
-        char tipo;
-
-        do {
-
-            System.out.println();
-            System.out.println("Seleccione su apuesta:");
-            System.out.println("R - Rojo");
-            System.out.println("N - Negro");
-            System.out.println("P - Par");
-            System.out.println("I - Impar");
-            System.out.print("Opción: ");
-
-            String entrada = in.next();
-
-            if (entrada.length() == 1) {
-
-                tipo = Character.toUpperCase(entrada.charAt(0));
-
-            } else {
-
-                tipo = ' ';
-            }
-
-            if (tipo != 'R' &&
-                    tipo != 'N' &&
-                    tipo != 'P' &&
-                    tipo != 'I') {
-
-                System.out.println("Tipo de apuesta inválido.");
-            }
-
-        } while (
-                tipo != 'R' &&
-                        tipo != 'N' &&
-                        tipo != 'P' &&
-                        tipo != 'I'
-        );
-
-        return tipo;
-    }
-
-    public static int girarRuleta() {
-
+    // Girar la ruleta
+    public int girarRuleta() {
         return rng.nextInt(CANTIDAD_NUMEROS);
     }
 
-    public static boolean evaluarResultado(int numero, char tipo) {
+    // Evaluar si una apuesta es ganadora
+    public boolean evaluarResultado(
+            int numero,
+            TipoApuesta tipo
+    ) {
+        if (tipo == null) {
+            throw new IllegalArgumentException(
+                    "El tipo de apuesta no puede ser nulo."
+            );
+        }
 
-        tipo = Character.toUpperCase(tipo);
+        if (numero < 0 || numero >= CANTIDAD_NUMEROS) {
+            throw new IllegalArgumentException(
+                    "El número debe estar entre 0 y 36."
+            );
+        }
 
+        // El cero no gana en estas cuatro apuestas
         if (numero == 0) {
-
             return false;
         }
 
-        switch (tipo) {
-
-            case 'R':
-                return esRojo(numero);
-
-            case 'N':
-                return !esRojo(numero);
-
-            case 'P':
-                return numero % 2 == 0;
-
-            case 'I':
-                return numero % 2 != 0;
-
-            default:
-                return false;
-        }
+        return switch (tipo) {
+            case ROJO -> esRojo(numero);
+            case NEGRO -> !esRojo(numero);
+            case PAR -> numero % 2 == 0;
+            case IMPAR -> numero % 2 != 0;
+        };
     }
 
-    public static boolean esRojo(int n) {
-
-        for (int numeroRojo : numerosRojos) {
-
-            if (numeroRojo == n) {
-
+    // Comprobar si un número es rojo
+    public boolean esRojo(int numero) {
+        for (int rojo : NUMEROS_ROJOS) {
+            if (rojo == numero) {
                 return true;
             }
         }
@@ -218,54 +119,90 @@ public class Ruleta {
         return false;
     }
 
-    public static void registrarResultado(
-            int numero,
-            int apuesta,
-            boolean acierto) {
-
-        if (historialSize < MAX_HISTORIAL) {
-
-            historialNumeros[historialSize] = numero;
-            historialApuestas[historialSize] = apuesta;
-            historialAciertos[historialSize] = acierto;
-
-            historialSize++;
+    // Procesar una apuesta y actualizar el saldo
+    public boolean apostar(TipoApuesta tipo, int monto) {
+        if (tipo == null) {
+            throw new IllegalArgumentException(
+                    "Debes seleccionar un tipo de apuesta."
+            );
         }
+
+        if (monto <= 0) {
+            throw new IllegalArgumentException(
+                    "La apuesta debe ser mayor que cero."
+            );
+        }
+
+        if (monto > saldo) {
+            throw new IllegalArgumentException(
+                    "No tienes saldo suficiente."
+            );
+        }
+
+        if (historialSize >= MAX_HISTORIAL) {
+            throw new IllegalStateException(
+                    "El historial está lleno."
+            );
+        }
+
+        // Descontar el monto apostado
+        saldo -= monto;
+
+        ultimoNumero = girarRuleta();
+        ultimoAcierto = evaluarResultado(ultimoNumero, tipo);
+
+        // Si gana, recibe el doble de lo apostado,
+        // incluyendo la devolución de su apuesta.
+        if (ultimoAcierto) {
+            saldo += monto * 2;
+        }
+
+        registrarResultado(
+                ultimoNumero,
+                monto,
+                ultimoAcierto
+        );
+
+        return ultimoAcierto;
     }
 
-    public static void mostrarResultado(
+    // Guardar una ronda
+    private void registrarResultado(
             int numero,
-            char tipo,
             int monto,
-            boolean acierto) {
+            boolean acierto
+    ) {
+        historialNumeros[historialSize] = numero;
+        historialApuestas[historialSize] = monto;
+        historialAciertos[historialSize] = acierto;
 
-        System.out.println();
-        System.out.println("===== RESULTADO =====");
-        System.out.println("Número: " + numero);
-        System.out.println("Apuesta: " + tipo);
-        System.out.println("Monto: $" + monto);
-
-        if (acierto) {
-
-            System.out.println("¡GANASTE!");
-
-        } else {
-
-            System.out.println("PERDISTE.");
-        }
+        historialSize++;
     }
 
-    public static void mostrarEstadisticas() {
+    // Consultar el último número obtenido
+    public int getUltimoNumero() {
+        return ultimoNumero;
+    }
 
+    // Consultar el resultado de la última apuesta
+    public boolean getUltimoAcierto() {
+        return ultimoAcierto;
+    }
+
+    // Consultar cuántas rondas se han jugado
+    public int getHistorialSize() {
+        return historialSize;
+    }
+
+    // Calcular y mostrar estadísticas
+    public void mostrarEstadisticas() {
         int totalApostado = 0;
         int totalAciertos = 0;
 
         for (int i = 0; i < historialSize; i++) {
-
             totalApostado += historialApuestas[i];
 
             if (historialAciertos[i]) {
-
                 totalAciertos++;
             }
         }
@@ -273,21 +210,19 @@ public class Ruleta {
         double porcentaje = 0;
 
         if (historialSize > 0) {
-
             porcentaje =
                     (double) totalAciertos / historialSize * 100;
         }
-
-        int gananciaNeta =
-                totalAciertos * 2 * (totalApostado / Math.max(historialSize, 1))
-                        - totalApostado;
 
         System.out.println();
         System.out.println("===== ESTADÍSTICAS =====");
         System.out.println("Rondas jugadas: " + historialSize);
         System.out.println("Monto total apostado: $" + totalApostado);
         System.out.println("Total de aciertos: " + totalAciertos);
-        System.out.println("Porcentaje de aciertos: " + porcentaje + "%");
-        System.out.println("Ganancia/pérdida neta: $" + gananciaNeta);
+        System.out.printf(
+                "Porcentaje de aciertos: %.2f%%%n",
+                porcentaje
+        );
+        System.out.println("Saldo actual: $" + saldo);
     }
 }
