@@ -6,6 +6,8 @@ import java.awt.*;
 
 public class VentanaRegistro {
 
+    private final SessionController session;
+
     private final JFrame frame =
             new JFrame("Casino Black Cat - Registro");
 
@@ -13,13 +15,13 @@ public class VentanaRegistro {
     private final JTextField txtUsuario = new JTextField();
     private final JPasswordField txtClave = new JPasswordField();
 
-    private final SessionController sessionController =
-            SessionController.getInstancia();
+    public VentanaRegistro(SessionController session) {
+        this.session = session;
 
-    public VentanaRegistro() {
         frame.setSize(400, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
 
         JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.setBorder(
@@ -31,10 +33,13 @@ public class VentanaRegistro {
 
         panel.add(new JLabel("Nombre:"));
         panel.add(txtNombre);
+
         panel.add(new JLabel("Usuario:"));
         panel.add(txtUsuario);
+
         panel.add(new JLabel("Contraseña:"));
         panel.add(txtClave);
+
         panel.add(btnRegistrar);
         panel.add(btnVolver);
 
@@ -49,7 +54,7 @@ public class VentanaRegistro {
         String username = txtUsuario.getText().trim();
         String password = new String(txtClave.getPassword());
 
-        if (nombre.isEmpty() || username.isEmpty()
+        if (nombre.isBlank() || username.isBlank()
                 || password.isBlank()) {
             JOptionPane.showMessageDialog(
                     frame,
@@ -61,7 +66,7 @@ public class VentanaRegistro {
         }
 
         try {
-            boolean registrado = sessionController.registrarUsuario(
+            boolean registrado = session.registrarUsuario(
                     username,
                     password,
                     nombre
@@ -70,8 +75,8 @@ public class VentanaRegistro {
             if (!registrado) {
                 JOptionPane.showMessageDialog(
                         frame,
-                        "Ese nombre de usuario ya está registrado.",
-                        "Usuario existente",
+                        session.getUltimoError(),
+                        "No se pudo registrar",
                         JOptionPane.WARNING_MESSAGE
                 );
                 return;
@@ -79,7 +84,9 @@ public class VentanaRegistro {
 
             JOptionPane.showMessageDialog(
                     frame,
-                    "Cuenta creada correctamente. Ahora inicia sesión."
+                    "Cuenta creada correctamente. Ahora inicia sesión.",
+                    "Registro exitoso",
+                    JOptionPane.INFORMATION_MESSAGE
             );
 
             volverAlLogin();
@@ -96,7 +103,7 @@ public class VentanaRegistro {
 
     private void volverAlLogin() {
         frame.dispose();
-        new VentanaLogin().mostrarVentana();
+        new VentanaLogin(session).mostrarVentana();
     }
 
     public void mostrarVentana() {

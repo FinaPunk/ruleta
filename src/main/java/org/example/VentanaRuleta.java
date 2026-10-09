@@ -10,6 +10,7 @@ public class VentanaRuleta {
             new JFrame("Casino Black Cat - Ruleta");
 
     private final ControladorRuleta controlador;
+    private final SessionController session;
 
     private final JLabel lblNombre =
             new JLabel("", SwingConstants.CENTER);
@@ -20,10 +21,17 @@ public class VentanaRuleta {
     private final JLabel lblResultado =
             new JLabel("¡Haz tu primera apuesta!", SwingConstants.CENTER);
 
-    public VentanaRuleta(ControladorRuleta controlador) {
-        this.controlador = controlador;
+    private final JComboBox<TipoApuesta> cboTipoApuesta =
+            new JComboBox<>(TipoApuesta.values());
 
-        frame.setSize(500, 420);
+    public VentanaRuleta(
+            ControladorRuleta controlador,
+            SessionController session
+    ) {
+        this.controlador = controlador;
+        this.session = session;
+
+        frame.setSize(520, 420);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout(10, 10));
@@ -33,60 +41,43 @@ public class VentanaRuleta {
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)
         );
 
-        JButton btnRojo = new JButton("Apostar a ROJO");
-        JButton btnNegro = new JButton("Apostar a NEGRO");
-        JButton btnPar = new JButton("Apostar a PAR");
-        JButton btnImpar = new JButton("Apostar a IMPAR");
+        JButton btnApostar = new JButton("Apostar");
         JButton btnPerfil = new JButton("Mi perfil");
         JButton btnEstadisticas = new JButton("Ver estadísticas");
         JButton btnCerrarSesion = new JButton("Cerrar sesión");
 
         panel.add(lblNombre);
         panel.add(lblSaldo);
-        panel.add(btnRojo);
-        panel.add(btnNegro);
-        panel.add(btnPar);
-        panel.add(btnImpar);
+
+        panel.add(new JLabel("Tipo de apuesta:"));
+        panel.add(cboTipoApuesta);
+
+        panel.add(btnApostar);
         panel.add(btnPerfil);
+
         panel.add(btnEstadisticas);
         panel.add(btnCerrarSesion);
 
         frame.add(panel, BorderLayout.CENTER);
         frame.add(lblResultado, BorderLayout.SOUTH);
 
-        btnRojo.addActionListener(
-                e -> realizarApuesta(TipoApuesta.ROJO)
-        );
+        btnApostar.addActionListener(e -> {
+            TipoApuesta tipo =
+                    (TipoApuesta) cboTipoApuesta.getSelectedItem();
 
-        btnNegro.addActionListener(
-                e -> realizarApuesta(TipoApuesta.NEGRO)
-        );
-
-        btnPar.addActionListener(
-                e -> realizarApuesta(TipoApuesta.PAR)
-        );
-
-        btnImpar.addActionListener(
-                e -> realizarApuesta(TipoApuesta.IMPAR)
-        );
+            if (tipo != null) {
+                realizarApuesta(tipo);
+            }
+        });
 
         btnPerfil.addActionListener(e -> mostrarPerfil());
 
-        btnEstadisticas.addActionListener(e -> {
-            controlador.mostrarEstadisticas();
-
-            JOptionPane.showMessageDialog(
-                    frame,
-                    "Las estadísticas se muestran en la consola de IntelliJ.",
-                    "Estadísticas",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-        });
+        btnEstadisticas.addActionListener(e -> mostrarEstadisticas());
 
         btnCerrarSesion.addActionListener(e -> {
-            SessionController.getInstancia().cerrarSesion();
+            session.cerrarSesion();
             frame.dispose();
-            new VentanaLogin().mostrarVentana();
+            new VentanaLogin(session).mostrarVentana();
         });
 
         actualizarDatos();
@@ -95,7 +86,8 @@ public class VentanaRuleta {
     private void realizarApuesta(TipoApuesta tipo) {
         String entrada = JOptionPane.showInputDialog(
                 frame,
-                "Saldo actual: $" + controlador.getSaldo()
+                "Tipo: " + tipo
+                        + "\nSaldo actual: $" + controlador.getSaldo()
                         + "\n¿Cuánto deseas apostar?"
         );
 
@@ -128,7 +120,8 @@ public class VentanaRuleta {
         }
 
         try {
-            boolean realizada = controlador.realizarApuesta(tipo, monto);
+            boolean realizada =
+                    controlador.realizarApuesta(tipo, monto);
 
             if (!realizada) {
                 JOptionPane.showMessageDialog(
@@ -244,6 +237,9 @@ public class VentanaRuleta {
                     frame,
                     "Nombre actualizado correctamente."
             );
+
+            actualizarDatos();
+
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(
                     frame,
@@ -287,6 +283,7 @@ public class VentanaRuleta {
                     "Depósito realizado correctamente.\n"
                             + "Saldo actual: $" + controlador.getSaldo()
             );
+
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(
                     frame,
@@ -295,6 +292,26 @@ public class VentanaRuleta {
                     JOptionPane.WARNING_MESSAGE
             );
         }
+    }
+
+    private void mostrarEstadisticas() {
+        JTextArea areaTexto = new JTextArea(
+                controlador.getEstadisticas()
+        );
+
+        areaTexto.setEditable(false);
+        areaTexto.setCaretPosition(0);
+        areaTexto.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+        JScrollPane scroll = new JScrollPane(areaTexto);
+        scroll.setPreferredSize(new Dimension(480, 300));
+
+        JOptionPane.showMessageDialog(
+                frame,
+                scroll,
+                "Estadísticas de la ruleta",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void actualizarDatos() {

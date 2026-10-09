@@ -11,12 +11,9 @@ public class Ruleta {
     private int saldo;
     private final Random random = new Random();
 
-    private final int[] historialNumeros =
-            new int[MAX_HISTORIAL];
-
+    private final int[] historialNumeros = new int[MAX_HISTORIAL];
     private final TipoApuesta[] historialApuestas =
             new TipoApuesta[MAX_HISTORIAL];
-
     private final boolean[] historialAciertos =
             new boolean[MAX_HISTORIAL];
 
@@ -35,7 +32,7 @@ public class Ruleta {
             );
         }
 
-        this.saldo = saldoInicial;
+        saldo = saldoInicial;
     }
 
     public int getSaldo() {
@@ -73,10 +70,7 @@ public class Ruleta {
         return false;
     }
 
-    public boolean evaluarResultado(
-            int numero,
-            TipoApuesta tipo
-    ) {
+    public boolean evaluarResultado(int numero, TipoApuesta tipo) {
         if (numero < 0 || numero >= CANTIDAD_NUMEROS) {
             throw new IllegalArgumentException(
                     "El número debe estar entre 0 y 36."
@@ -92,16 +86,12 @@ public class Ruleta {
         switch (tipo) {
             case ROJO:
                 return numero != 0 && esRojo(numero);
-
             case NEGRO:
                 return numero != 0 && !esRojo(numero);
-
             case PAR:
                 return numero != 0 && numero % 2 == 0;
-
             case IMPAR:
                 return numero % 2 != 0;
-
             default:
                 return false;
         }
@@ -196,35 +186,43 @@ public class Ruleta {
         historialSize++;
     }
 
-    public void mostrarEstadisticas() {
+    public String getEstadisticas() {
         if (historialSize == 0) {
-            System.out.println("Todavía no hay apuestas registradas.");
-            return;
+            return "Todavía no hay apuestas registradas."
+                    + "\n\nSaldo actual: $" + getSaldo();
         }
 
         int aciertos = 0;
+        StringBuilder texto = new StringBuilder();
 
-        System.out.println("===== HISTORIAL DE RULETA =====");
+        texto.append("===== HISTORIAL DE RULETA =====\n\n");
 
         for (int i = 0; i < historialSize; i++) {
-            System.out.println(
-                    "Apuesta " + (i + 1)
-                            + " | Número: " + historialNumeros[i]
-                            + " | Tipo: " + historialApuestas[i]
-                            + " | Resultado: "
-                            + (historialAciertos[i] ? "Ganada" : "Perdida")
-            );
+            texto.append("Apuesta ")
+                    .append(i + 1)
+                    .append(" | Número: ")
+                    .append(historialNumeros[i])
+                    .append(" | Tipo: ")
+                    .append(historialApuestas[i])
+                    .append(" | Resultado: ")
+                    .append(historialAciertos[i] ? "Ganada" : "Perdida")
+                    .append("\n");
 
             if (historialAciertos[i]) {
                 aciertos++;
             }
         }
 
-        System.out.println("Total de apuestas: " + historialSize);
-        System.out.println("Apuestas ganadas: " + aciertos);
-        System.out.println(
-                "Apuestas perdidas: " + (historialSize - aciertos)
-        );
-        System.out.println("Saldo actual: $" + saldo);
+        texto.append("\nTotal de apuestas: ").append(historialSize);
+        texto.append("\nApuestas ganadas: ").append(aciertos);
+        texto.append("\nApuestas perdidas: ")
+                .append(historialSize - aciertos);
+        texto.append("\nSaldo actual: $").append(getSaldo());
+
+        return texto.toString();
+    }
+
+    public void mostrarEstadisticas() {
+        System.out.println(getEstadisticas());
     }
 }

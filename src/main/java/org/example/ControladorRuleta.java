@@ -49,6 +49,10 @@ public class ControladorRuleta {
         return ruleta.esRojo(numero);
     }
 
+    public String getEstadisticas() {
+        return ruleta.getEstadisticas();
+    }
+
     public void mostrarEstadisticas() {
         ruleta.mostrarEstadisticas();
     }
