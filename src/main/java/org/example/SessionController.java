@@ -8,36 +8,47 @@ import java.util.Map;
 
 public class SessionController {
 
-    private static final SessionController INSTANCIA =
-            new SessionController();
-
     private final List<Usuario> usuarios = new ArrayList<>();
     private final Map<String, Ruleta> ruletas = new HashMap<>();
 
     private Usuario usuarioActual;
+    private String ultimoError = "";
 
-    private SessionController() {
-        usuarios.add(
-                new Usuario("admin", "1234", "Administrador")
-        );
-        usuarios.add(
-                new Usuario("jugador", "1234", "Jugador")
-        );
+    public SessionController() {
+        Usuario admin = new Usuario("admin", "1234", "Administrador");
+        Usuario jugador = new Usuario("jugador", "1234", "Jugador");
+
+        usuarios.add(admin);
+        usuarios.add(jugador);
+
+        ruletas.put(admin.getUsername(), new Ruleta());
+        ruletas.put(jugador.getUsername(), new Ruleta());
     }
 
-    public static SessionController getInstancia() {
-        return INSTANCIA;
-    }
+    public boolean iniciarSesion(String username, String password) {
+        ultimoError = "";
 
-    public Usuario iniciarSesion(String username, String password) {
+        if (username == null || username.isBlank()
+                || password == null || password.isBlank()) {
+            ultimoError = "Ingresa tu usuario y contraseña.";
+            return false;
+        }
+
         for (Usuario usuario : usuarios) {
             if (usuario.validarCredenciales(username, password)) {
                 usuarioActual = usuario;
-                return usuario;
+
+                ruletas.computeIfAbsent(
+                        usuario.getUsername(),
+                        clave -> new Ruleta()
+                );
+
+                return true;
             }
         }
 
-        return null;
+        ultimoError = "Usuario o contraseña incorrectos.";
+        return false;
     }
 
     public boolean registrarUsuario(
@@ -45,31 +56,49 @@ public class SessionController {
             String password,
             String nombre
     ) {
+        ultimoError = "";
+
         if (username == null || username.isBlank()
                 || password == null || password.isBlank()
                 || nombre == null || nombre.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Todos los campos son obligatorios."
-            );
+            ultimoError = "Todos los campos son obligatorios.";
+            return false;
         }
 
         String usuarioLimpio = username.trim();
 
         for (Usuario usuario : usuarios) {
             if (usuario.getUsername().equalsIgnoreCase(usuarioLimpio)) {
+                ultimoError = "Ese nombre de usuario ya está registrado.";
                 return false;
             }
         }
 
-        usuarios.add(
-                new Usuario(
-                        usuarioLimpio,
-                        password,
-                        nombre.trim()
-                )
+        Usuario nuevoUsuario = new Usuario(
+                usuarioLimpio,
+                password,
+                nombre.trim()
         );
 
+        usuarios.add(nuevoUsuario);
+        ruletas.put(usuarioLimpio, new Ruleta());
+
         return true;
+    }
+
+    public ControladorRuleta crearControladorRuleta() {
+        if (usuarioActual == null) {
+            throw new IllegalStateException(
+                    "Debes iniciar sesión antes de abrir la ruleta."
+            );
+        }
+
+        Ruleta ruleta = ruletas.computeIfAbsent(
+                usuarioActual.getUsername(),
+                clave -> new Ruleta()
+        );
+
+        return new ControladorRuleta(usuarioActual, ruleta);
     }
 
     public Usuario getUsuarioActual() {
@@ -85,11 +114,20 @@ public class SessionController {
 
         return ruletas.computeIfAbsent(
                 usuarioActual.getUsername(),
-                username -> new Ruleta()
+                clave -> new Ruleta()
         );
+    }
+
+    public String getUltimoError() {
+        return ultimoError;
+    }
+
+    public boolean hayUsuario() {
+        return usuarioActual != null;
     }
 
     public void cerrarSesion() {
         usuarioActual = null;
+        ultimoError = "";
     }
 }

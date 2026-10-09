@@ -6,75 +6,88 @@ import java.awt.*;
 
 public class VentanaLogin {
 
-    private final JFrame frame =
-            new JFrame("Casino Black Cat - Iniciar sesión");
+    private final SessionController session;
 
-    private final JTextField txtUsuario = new JTextField();
-    private final JPasswordField txtClave = new JPasswordField();
+    private JFrame ventana;
+    private JTextField txtUsuario;
+    private JPasswordField txtPassword;
 
-    private final SessionController sessionController =
-            SessionController.getInstancia();
+    public VentanaLogin(SessionController session) {
+        this.session = session;
+    }
 
-    public VentanaLogin() {
-        frame.setSize(400, 230);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
+    public void mostrarVentana() {
+        ventana = new JFrame("Casino Black Cat - Iniciar sesión");
+        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        ventana.setSize(400, 260);
+        ventana.setLocationRelativeTo(null);
+        ventana.setResizable(false);
 
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.setBorder(
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)
         );
 
-        JButton btnIngresar = new JButton("Ingresar");
+        panel.add(new JLabel("Usuario:"));
+        txtUsuario = new JTextField();
+        panel.add(txtUsuario);
+
+        panel.add(new JLabel("Contraseña:"));
+        txtPassword = new JPasswordField();
+        panel.add(txtPassword);
+
+        JButton btnIngresar = new JButton("Iniciar sesión");
         JButton btnRegistrar = new JButton("Registrarse");
 
-        panel.add(new JLabel("Usuario:"));
-        panel.add(txtUsuario);
-        panel.add(new JLabel("Contraseña:"));
-        panel.add(txtClave);
         panel.add(btnIngresar);
         panel.add(btnRegistrar);
 
-        frame.add(panel);
+        panel.add(new JLabel("Prueba: admin / 1234"));
+        panel.add(new JLabel(""));
 
-        btnIngresar.addActionListener(e -> login());
+        btnIngresar.addActionListener(e -> iniciarSesion());
+        btnRegistrar.addActionListener(e -> abrirRegistro());
 
-        btnRegistrar.addActionListener(e -> {
-            frame.dispose();
-            new VentanaRegistro().mostrarVentana();
-        });
+        ventana.add(panel);
+        ventana.setVisible(true);
     }
 
-    private void login() {
+    private void iniciarSesion() {
         String username = txtUsuario.getText().trim();
-        String password = new String(txtClave.getPassword());
+        String password = new String(txtPassword.getPassword());
 
-        Usuario usuario = sessionController.iniciarSesion(
-                username,
-                password
-        );
-
-        if (usuario == null) {
+        if (username.isBlank() || password.isBlank()) {
             JOptionPane.showMessageDialog(
-                    frame,
-                    "Usuario o contraseña incorrectos.",
-                    "Error",
+                    ventana,
+                    "Ingresa tu usuario y contraseña.",
+                    "Datos incompletos",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        boolean ingreso = session.iniciarSesion(username, password);
+
+        if (!ingreso) {
+            JOptionPane.showMessageDialog(
+                    ventana,
+                    session.getUltimoError(),
+                    "Error de inicio de sesión",
                     JOptionPane.ERROR_MESSAGE
             );
             return;
         }
 
-        ControladorRuleta controlador = new ControladorRuleta(
-                usuario,
-                sessionController.getRuletaActual()
-        );
+        ControladorRuleta controlador =
+                session.crearControladorRuleta();
 
-        frame.dispose();
-        new VentanaRuleta(controlador).mostrarVentana();
+        ventana.dispose();
+
+        new VentanaRuleta(controlador, session).mostrarVentana();
     }
 
-    public void mostrarVentana() {
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+    private void abrirRegistro() {
+        ventana.dispose();
+        new VentanaRegistro(session).mostrarVentana();
     }
 }
