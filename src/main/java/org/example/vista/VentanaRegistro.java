@@ -1,5 +1,6 @@
+package org.example.vista;
 
-package org.example;
+import org.example.controlador.SessionController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,9 +9,7 @@ public class VentanaRegistro {
 
     private final SessionController session;
 
-    private final JFrame frame =
-            new JFrame("Casino Black Cat - Registro");
-
+    private final JFrame frame = new JFrame("Casino Black Cat - Registro");
     private final JTextField txtNombre = new JTextField();
     private final JTextField txtUsuario = new JTextField();
     private final JPasswordField txtClave = new JPasswordField();
@@ -24,9 +23,7 @@ public class VentanaRegistro {
         frame.setResizable(false);
 
         JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-        panel.setBorder(
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        );
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JButton btnRegistrar = new JButton("Crear cuenta");
         JButton btnVolver = new JButton("Volver al inicio");
@@ -54,51 +51,20 @@ public class VentanaRegistro {
         String username = txtUsuario.getText().trim();
         String password = new String(txtClave.getPassword());
 
-        if (nombre.isBlank() || username.isBlank()
-                || password.isBlank()) {
-            JOptionPane.showMessageDialog(
-                    frame,
-                    "Completa todos los campos.",
-                    "Datos incompletos",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (nombre.isBlank() || username.isBlank() || password.isBlank()) {
+            JOptionPane.showMessageDialog(frame, "Completa todos los campos.", "Datos incompletos", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        try {
-            boolean registrado = session.registrarUsuario(
-                    username,
-                    password,
-                    nombre
-            );
+        boolean registrado = session.registrarUsuario(username, password, nombre);
 
-            if (!registrado) {
-                JOptionPane.showMessageDialog(
-                        frame,
-                        session.getUltimoError(),
-                        "No se pudo registrar",
-                        JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
-
-            JOptionPane.showMessageDialog(
-                    frame,
-                    "Cuenta creada correctamente. Ahora inicia sesión.",
-                    "Registro exitoso",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-
-            volverAlLogin();
-
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(
-                    frame,
-                    ex.getMessage(),
-                    "Error de registro",
-                    JOptionPane.ERROR_MESSAGE
-            );
+        if (!registrado) {
+            JOptionPane.showMessageDialog(frame, session.getUltimoError(), "No se pudo registrar", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+
+        JOptionPane.showMessageDialog(frame, "Cuenta creada correctamente. Ahora inicia sesión.", "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+        volverAlLogin();
     }
 
     private void volverAlLogin() {

@@ -1,11 +1,15 @@
+package org.example.modelo;
 
-package org.example;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Usuario {
 
     private String username;
     private String password;
     private String nombre;
+    private final List<Resultado> historialResultados = new ArrayList<>();
 
     public Usuario(String username, String password, String nombre) {
         setUsername(username);
@@ -23,11 +27,8 @@ public class Usuario {
 
     public void setUsername(String username) {
         if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El nombre de usuario es obligatorio."
-            );
+            throw new IllegalArgumentException("El nombre de usuario es obligatorio.");
         }
-
         this.username = username.trim();
     }
 
@@ -37,11 +38,8 @@ public class Usuario {
 
     public void setPassword(String password) {
         if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException(
-                    "La contraseña es obligatoria."
-            );
+            throw new IllegalArgumentException("La contraseña es obligatoria.");
         }
-
         this.password = password;
     }
 
@@ -51,21 +49,25 @@ public class Usuario {
 
     public void setNombre(String nombre) {
         if (nombre == null || nombre.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El nombre no puede estar vacío."
-            );
+            throw new IllegalArgumentException("El nombre no puede estar vacío.");
         }
-
         this.nombre = nombre.trim();
     }
 
-    public boolean validarCredenciales(
-            String username,
-            String password
-    ) {
+    public boolean validarCredenciales(String username, String password) {
         return username != null
                 && password != null
                 && this.username.equalsIgnoreCase(username.trim())
                 && this.password.equals(password);
+    }
+
+    public void agregarResultado(Resultado resultado) {
+        if (resultado != null) {
+            this.historialResultados.add(resultado);
+        }
+    }
+
+    public List<Resultado> getHistorialResultados() {
+        return Collections.unmodifiableList(historialResultados);
     }
 }

@@ -1,5 +1,7 @@
+package org.example.vista;
 
-package org.example;
+import org.example.controlador.RuletaController;
+import org.example.controlador.SessionController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,9 +26,7 @@ public class VentanaLogin {
         ventana.setResizable(false);
 
         JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-        panel.setBorder(
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        );
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         panel.add(new JLabel("Usuario:"));
         txtUsuario = new JTextField();
@@ -43,7 +43,6 @@ public class VentanaLogin {
         panel.add(btnRegistrar);
 
         panel.add(new JLabel("Prueba: admin / 1234"));
-        panel.add(new JLabel(""));
 
         btnIngresar.addActionListener(e -> iniciarSesion());
         btnRegistrar.addActionListener(e -> abrirRegistro());
@@ -57,33 +56,19 @@ public class VentanaLogin {
         String password = new String(txtPassword.getPassword());
 
         if (username.isBlank() || password.isBlank()) {
-            JOptionPane.showMessageDialog(
-                    ventana,
-                    "Ingresa tu usuario y contraseña.",
-                    "Datos incompletos",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(ventana, "Ingresa tu usuario y contraseña.", "Datos incompletos", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         boolean ingreso = session.iniciarSesion(username, password);
 
         if (!ingreso) {
-            JOptionPane.showMessageDialog(
-                    ventana,
-                    session.getUltimoError(),
-                    "Error de inicio de sesión",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(ventana, session.getUltimoError(), "Error de inicio de sesión", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        ControladorRuleta controlador =
-                session.crearControladorRuleta();
-
         ventana.dispose();
-
-        new VentanaRuleta(controlador, session).mostrarVentana();
+        new VentanaMenu(session).mostrarVentana();
     }
 
     private void abrirRegistro() {

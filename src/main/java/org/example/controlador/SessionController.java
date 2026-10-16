@@ -1,5 +1,7 @@
+package org.example.controlador;
 
-package org.example;
+import org.example.modelo.Ruleta;
+import org.example.modelo.Usuario;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,8 +23,8 @@ public class SessionController {
         usuarios.add(admin);
         usuarios.add(jugador);
 
-        ruletas.put(admin.getUsername(), new Ruleta());
-        ruletas.put(jugador.getUsername(), new Ruleta());
+        ruletas.put(admin.getUsername(), new Ruleta(1000));
+        ruletas.put(jugador.getUsername(), new Ruleta(500));
     }
 
     public boolean iniciarSesion(String username, String password) {
@@ -51,11 +53,7 @@ public class SessionController {
         return false;
     }
 
-    public boolean registrarUsuario(
-            String username,
-            String password,
-            String nombre
-    ) {
+    public boolean registrarUsuario(String username, String password, String nombre) {
         ultimoError = "";
 
         if (username == null || username.isBlank()
@@ -74,23 +72,16 @@ public class SessionController {
             }
         }
 
-        Usuario nuevoUsuario = new Usuario(
-                usuarioLimpio,
-                password,
-                nombre.trim()
-        );
-
+        Usuario nuevoUsuario = new Usuario(usuarioLimpio, password, nombre.trim());
         usuarios.add(nuevoUsuario);
-        ruletas.put(usuarioLimpio, new Ruleta());
+        ruletas.put(usuarioLimpio, new Ruleta(200));
 
         return true;
     }
 
-    public ControladorRuleta crearControladorRuleta() {
+    public RuletaController crearControladorRuleta() {
         if (usuarioActual == null) {
-            throw new IllegalStateException(
-                    "Debes iniciar sesión antes de abrir la ruleta."
-            );
+            throw new IllegalStateException("Debes iniciar sesión antes de abrir la ruleta.");
         }
 
         Ruleta ruleta = ruletas.computeIfAbsent(
@@ -98,7 +89,7 @@ public class SessionController {
                 clave -> new Ruleta()
         );
 
-        return new ControladorRuleta(usuarioActual, ruleta);
+        return new RuletaController(ruleta, this);
     }
 
     public Usuario getUsuarioActual() {
@@ -107,9 +98,7 @@ public class SessionController {
 
     public Ruleta getRuletaActual() {
         if (usuarioActual == null) {
-            throw new IllegalStateException(
-                    "No hay ningún usuario con sesión iniciada."
-            );
+            throw new IllegalStateException("No hay ningún usuario con sesión iniciada.");
         }
 
         return ruletas.computeIfAbsent(
